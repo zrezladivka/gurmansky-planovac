@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+<meta charset="UTF-8">
+<title>Gurmánský plánovač cest</title>
+<style>
+body { font-family: Arial; background:#f5f5f5; padding:20px }
+input, button { padding:8px; font-size:16px }
+.place { background:white; padding:10px; margin:10px 0; border-radius:6px }
+</style>
+</head>
+<body>
+
+<h1>🍽️ Gurmánský plánovač cest</h1>
+<p>Napiš město v Evropě:</p>
+
+<input id="city" placeholder="Např. Florence, Paris">
+<button onclick="search()">Hledat</button>
+
+<div id="results"></div>
+<div id="map" style="display:none"></div>
+
+<script>
+const API_KEY = "AIzaSyBQ37qvjBV9WawMem6IzecnWJfD11GYSxk";
+let map, service;
+
+function initMap() {
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: { lat: 48.8566, lng: 2.3522 },
+    zoom: 13
+  });
+  service = new google.maps.places.PlacesService(map);
+}
+
+function search() {
+  const city = document.getElementById("city").value;
+  document.getElementById("results").innerHTML = "Hledám podniky…";
+
+  service.textSearch(
+    { query: `restaurants cafes in ${city}` },
+    (results, status) => {
+      const div = document.getElementById("results");
+      div.innerHTML = "";
+
+      if (status !== "OK") {
+        div.innerHTML = "Nic nenalezeno.";
+        return;
+      }
+
+      results.slice(0, 20).forEach(p => {
+        service.getDetails({
+          placeId: p.place_id,
+          fields: ["name","formatted_address","website","url"]
+        }, (d, s) => {
+          if (s === "OK") {
+            div.innerHTML += `
+              <div class="place">
+                <strong>${d.name}</strong><br>
+                ${d.formatted_address || ""}<br>
+                ${d.website ? `<a href="${d.website}" target="_blank">Web</a>` : ""}
+                <a href="${d.url}" target="_blank">Google / Facebook</a>
+              </div>`;
+          }
+        });
+      });
+    }
+  );
+}
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBQ37qvjBV9WawMem6IzecnWJfD11GYSxk&libraries=places&callback=initMap" async defer></script>
+
+</body>
+</html>
